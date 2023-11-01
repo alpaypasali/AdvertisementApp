@@ -1,4 +1,10 @@
 using AdvertisementApp.Business.DependencyResolvers.Microsoft;
+using AdvertisementApp.Business.Helpers;
+using AdvertisementApp.UI.Mappings.AutoMapper;
+using AdvertisementApp.UI.Models;
+using AdvertisementApp.UI.ValidationRules;
+using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +33,17 @@ namespace AdvertisementApp.UI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDependencies(Configuration);
+            services.AddTransient<IValidator<UserCreateModel>, UserCreateModelValidator>();
             services.AddControllersWithViews();
+            var profiles = ProfileHelper.GetProfiles();
+            profiles.Add(new UserCreateModelProfile());
+            var configuration = new MapperConfiguration(opt =>
+            {
+                opt.AddProfiles(profiles);
+
+            });
+            var mapper = configuration.CreateMapper();
+            services.AddSingleton(mapper);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -37,6 +53,8 @@ namespace AdvertisementApp.UI
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseStaticFiles();
 
             app.UseRouting();
 

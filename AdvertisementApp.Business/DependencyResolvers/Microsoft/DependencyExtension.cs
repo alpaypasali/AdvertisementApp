@@ -1,9 +1,15 @@
 ﻿using AdvertisementApp.Business.Interfaces;
 using AdvertisementApp.Business.Mappings.Autofac;
 using AdvertisementApp.Business.Services;
+using AdvertisementApp.Business.ValidationRules.FluentValidation.Advertisement;
+using AdvertisementApp.Business.ValidationRules.FluentValidation.AppUser;
+using AdvertisementApp.Business.ValidationRules.FluentValidation.Gender;
 using AdvertisementApp.Business.ValidationRules.FluentValidation.Provider;
 using AdvertisementApp.DataAccess.Contexts;
 using AdvertisementApp.DataAccess.UnitOfWork;
+using AdvertisementApp.Dtos.AdvertisementDtos;
+using AdvertisementApp.Dtos.AppUserDtos;
+using AdvertisementApp.Dtos.Gender;
 using AdvertisementApp.Dtos.ProvidedServiceDtos;
 using AutoMapper;
 using FluentValidation;
@@ -28,21 +34,31 @@ namespace AdvertisementApp.Business.DependencyResolvers.Microsoft
                 opt.UseSqlServer(configuration.GetConnectionString("Local"));
             });
 
-           var mapperConfiguration = new MapperConfiguration(opt =>
-            {
-                opt.AddProfile(new ProvidedServiceProfile());
+           
 
-            });
-
-            var mapper = mapperConfiguration.CreateMapper();
-            services.AddSingleton(mapper);
+         
 
             services.AddScoped<IUow, Uow>();
 
             services.AddTransient<IValidator<ProvidedServiceCreateDto>,ProvidedServiceCreateDtoValidator>();
             services.AddTransient<IValidator<ProvidedServiceUpdateDto>,ProvidedServiceUpdateDtoValidator>();
+           
+            
+            services.AddTransient<IValidator<AdvertisementCreateDto>,AdvertisementCreateDtoValidator>();
+            services.AddTransient<IValidator<AdvertisementUpdateDto>,AdvertisementUpdateDtoValidator>();
 
-            services.AddScoped<IProvidedServiceService, ProvidedServiceService>(); 
+            services.AddTransient<IValidator<AppUserCreateDto>, AppUserCreateDtoValidator>();
+            services.AddTransient<IValidator<AppUserUpdateDto>, AppUserUpdateDtoValidator>();
+
+            services.AddTransient<IValidator<GenderUpdateDto> , GenderUpdateDtoValidator>();
+            services.AddTransient<IValidator<GenderCreateDto> , GenderCreateDtoValidator>();
+
+
+
+            services.AddScoped<IProvidedServiceService, ProvidedServiceService>();
+            services.AddScoped<IAdvertisementService, AdvertisementService>();
+            services.AddScoped<IAppUserService , AppUserService>(); 
+            services.AddScoped<IGenderService,GenderService>();
             
         }
     }

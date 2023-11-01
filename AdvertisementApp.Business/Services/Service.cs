@@ -42,6 +42,7 @@ namespace AdvertisementApp.Business.Services
             {
                 var createdEntity = _mapper.Map<T>(createDto);
                 await _uow.GetRepository<T>().CreateAsync(createdEntity);
+                await _uow.SaveChangesAsync();
                 return new Response<CreateDto>(ResponseType.Success, createDto);
             }
             return new Response<CreateDto>(createDto , result.customValidationErrors());
@@ -76,6 +77,7 @@ namespace AdvertisementApp.Business.Services
 
             }
             _uow.GetRepository<T>().Remove(data);
+            await _uow.SaveChangesAsync();
             return new Response(ResponseType.Success);
          
         }
@@ -92,6 +94,7 @@ namespace AdvertisementApp.Business.Services
                 }
                 var data = _mapper.Map<T>(updateDto);
                 _uow.GetRepository<T>().Uptade(data, unchangedData);
+                await _uow.SaveChangesAsync();
                 return new Response<UpdateDto>(ResponseType.Success, updateDto);
             }
             return new Response<UpdateDto>(updateDto, result.customValidationErrors());
