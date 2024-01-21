@@ -20,7 +20,7 @@ namespace AdvertisementApp.Business.Interfaces
         Task<IResponse<UpdateDto>> UpdateAsync(UpdateDto updateDto);
 
         Task<IResponse<IDto>> GetByIdAsync<IDto>(int id);
-        Task<IResponse> Remove(int id);
+        Task<IResponse> RemoveAsync(int id);
         Task<IResponse<List<ListDto>>> GetAllAsync(); 
 
 

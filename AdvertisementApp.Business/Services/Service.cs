@@ -68,7 +68,7 @@ namespace AdvertisementApp.Business.Services
             return new Response<IDto>(ResponseType.Success,dto);
         }
 
-        public async Task<IResponse> Remove(int id)
+        public async Task<IResponse> RemoveAsync(int id)
         {
             var data = await _uow.GetRepository<T>().Find(id);
             if (data == null)

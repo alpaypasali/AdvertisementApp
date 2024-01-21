@@ -3,6 +3,7 @@ using AdvertisementApp.Business.Interfaces;
 using AdvertisementApp.Business.ValidationRules.FluentValidation.AppUser;
 using AdvertisementApp.Common;
 using AdvertisementApp.DataAccess.UnitOfWork;
+using AdvertisementApp.Dtos.AppRoleDtos;
 using AdvertisementApp.Dtos.AppUserDtos;
 using AdvertisementApp.Entities;
 using AutoMapper;
@@ -20,11 +21,14 @@ namespace AdvertisementApp.Business.Services
         private readonly IMapper _mapper;
         private readonly IUow _uow;
         private readonly IValidator<AppUserCreateDto> _validator;
-        public AppUserService(IMapper mapper , IValidator<AppUserCreateDto> createDtoValidator,IValidator<AppUserUpdateDto> updateDtoValidator, IUow uow ):base(mapper, createDtoValidator ,updateDtoValidator,uow)
+        private readonly IValidator<AppUserLoginDto> _loginDtoValidator;
+
+        public AppUserService(IMapper mapper, IValidator<AppUserCreateDto> createDtoValidator, IValidator<AppUserUpdateDto> updateDtoValidator, IUow uow, IValidator<AppUserLoginDto> loginDtoValidator) : base(mapper, createDtoValidator, updateDtoValidator, uow)
         {
             _mapper = mapper;
             _uow = uow;
             _validator = createDtoValidator;
+            _loginDtoValidator = loginDtoValidator;
         }
 
         public async Task<IResponse<AppUserCreateDto>> CreateWithRoleAsync(AppUserCreateDto dto , int roleId)
@@ -49,6 +53,37 @@ namespace AdvertisementApp.Business.Services
             return new Response<AppUserCreateDto>(dto, validationResult.customValidationErrors());
 
 
+        }
+        public async Task<IResponse<AppUserListDto>> CheckUserAsync(AppUserLoginDto loginDto)
+        {
+            var validationResult = _loginDtoValidator.Validate(loginDto);
+            if (validationResult.IsValid)
+            {
+              var user =  await _uow.GetRepository<AppUser>().GetByFilter(x=>x.UserName == loginDto.UserName && x.Password == loginDto.Password);
+                if(user != null)
+                {
+                    var appUserDto = _mapper.Map<AppUserListDto>(user);
+                    return new Response<AppUserListDto>(ResponseType.Success, appUserDto);
+
+                }
+                return new Response<AppUserListDto>(ResponseType.NotFound, "Kullanıcı adı veya şifre hatalı!");
+
+            }
+            return new Response<AppUserListDto>(ResponseType.ValidationError, "Kullanıcı Adı veya şifre bol olamaz!");
+
+
+        }
+
+        public async Task<IResponse<List<AppRoleListDto>>> GetRoleByUserIdAsync(int userId)
+        {
+        var result =  await  _uow.GetRepository<AppRole>().GetAllAsync(x=>x.AppUserRoles.Any(x=>x.AppUserId == userId));
+            if(result == null)
+            {
+                return new Response<List<AppRoleListDto>>(ResponseType.NotFound, "İlgili rol bulunamadı.");
+
+            }
+            var dto = _mapper.Map<List<AppRoleListDto>>(result);
+            return new Response<List<AppRoleListDto>>(ResponseType.Success, dto);
         }
     }
 }

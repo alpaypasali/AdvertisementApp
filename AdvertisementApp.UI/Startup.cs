@@ -5,6 +5,7 @@ using AdvertisementApp.UI.Models;
 using AdvertisementApp.UI.ValidationRules;
 using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -34,6 +35,21 @@ namespace AdvertisementApp.UI
         {
             services.AddDependencies(Configuration);
             services.AddTransient<IValidator<UserCreateModel>, UserCreateModelValidator>();
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(opt =>
+    {
+
+        opt.Cookie.Name = "AdvertisementCookie";
+        opt.Cookie.HttpOnly = true; 
+        opt.Cookie.SameSite =Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+        opt.Cookie.SecurePolicy =Microsoft.AspNetCore.Http.CookieSecurePolicy.SameAsRequest;
+        opt.ExpireTimeSpan = TimeSpan.FromDays(20);
+        opt.LoginPath = new Microsoft.AspNetCore.Http.PathString("/Account/SignIn");
+        opt.LogoutPath = new Microsoft.AspNetCore.Http.PathString("/Account/LogOut");
+        opt.AccessDeniedPath = new Microsoft.AspNetCore.Http.PathString("/Account/AccessDenied");
+
+    });
+
             services.AddControllersWithViews();
             var profiles = ProfileHelper.GetProfiles();
             profiles.Add(new UserCreateModelProfile());
@@ -57,6 +73,8 @@ namespace AdvertisementApp.UI
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
